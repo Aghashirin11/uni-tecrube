@@ -21,6 +21,8 @@ const currentDeg = document.querySelector('.weather_temp');
 const currentCloud = document.querySelector('.cloudtxt');
 const img = document.querySelector('.weather_icon')
 
+const currentTime = document.querySelector('.time')
+
 const apiKey = '173623ae52e316a5245c191d628e93ab';
 
 const days = [
@@ -33,44 +35,58 @@ const days = [
     "Saturday"
 ];
 
-// ✅ Bugünkü tarix və günün adı
+
+
 const today = new Date();
 const dayName = days[today.getDay()];
 dayEl.textContent = dayName;
 
-const month = today.toLocaleString('en', { month: "long" });
+const month = today.toLocaleString('en', { month: 'long' });
 const date = today.getDate();
 const year = today.getFullYear();
 dateEl.textContent = `${month} ${date} ${year}`;
 
-// ✅ Şəhərə görə hava məlumatı
+
+
+function updateTime() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('az-AZ', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    });
+    currentTime.innerText = timeStr
+
+
+}
+
+setInterval(updateTime, 1000);
+updateTime();
+
 btnEl.addEventListener('click', (e) => {
     e.preventDefault();
     const city = searchBar.value.trim();
-
     if (city !== "") {
         fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=en`)
             .then(response => response.json())
             .then(data => {
                 if (data.cod === '404') {
                     listContent.style.display = 'none'
-                    dayInfo.style.display ='none'
+                    dayInfo.style.display = 'none'
                     appContainer.style.display = 'block'
                     appContainer.innerHTML = `
                     <h3 class="weather_temp">${data.cod}</h2>
-                        <h2 class="weather_temp" style="font-size: 30px;">${data.message}</h2>
-                        
+                        <h2 class="weather_temp" style="font-size: 30px;">${data.message}</h2>      
                     `
-                    console.log(data);
-            
+
+
 
                 }
                 else {
-                    dayInfo.style.display ='block'
-                    console.log(data.cod);
+                    dayInfo.style.display = 'block'
                     listContent.style.display = 'block'
                     appContainer.style.display = 'block'
-                    console.log(data); // burada məlumat işlənə bilər
+
                     appContainer.innerHTML = `
                     <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@4x.png"  class="weather_icon">
                     <h3 class="weather_temp">${data.name}</h2>
@@ -80,7 +96,7 @@ btnEl.addEventListener('click', (e) => {
                     dayInfo.innerHTML = `
            <div class="content">
                         <p class="title">Name</p>
-                        <span class="value">${data.name}</span>
+                        <span class="value">${data.name} , ${data.sys.country}</span>
                     </div>
                     <div class="content">
                         <p class="title">temp</p>
@@ -94,16 +110,16 @@ btnEl.addEventListener('click', (e) => {
                         <p class="title">Wind Speed</p>
                         <span class="value">${Math.round(data.wind.speed)} km/h</span>
                     </div>`
-
-                    searchBar.value = ''
+                    searchBar.value = '';
+                    
                 }
             });
     }
     else {
-       
         alert('Please Enter City Name')
         appContainer.style.display = 'none'
         dayInfo.innerHTML = ''
+        listContent.style.display = 'none'
 
     }
 
@@ -112,20 +128,21 @@ btnEl.addEventListener('click', (e) => {
         fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`)
             .then(response => response.json())
             .then(data => {
-                const dailyForecast = data.list.filter(item => item.dt_txt.includes("00:00:00"));
+                const dailyForecast = data.list.filter(item => item.dt_txt.includes("12:00:00"));
                 showDays(dailyForecast);
-                console.log(dailyForecast);
-                console.log(data);
+                // console.log(dailyForecast);
+                // console.log(data);
             });
     }
 
-    // ✅ Günlərin qısa adını göstər
+
+
 
     function showDays(forecastArray) {
         forecastArray.slice(0, weekDay.length).forEach((item, index) => {
             const forecastDate = new Date(item.dt_txt);
             const shortDay = days[forecastDate.getDay()].slice(0, 3); // "Mon", "Tue" və s.
-            weekDay[index].innerText = shortDay;
+            weekDay[index].innerText = `${shortDay} 12AM`;
             weekTemp[index].innerText = `${Math.round(item.main.temp)}°C`;
             weekImg[index].src = `https://openweathermap.org/img/wn/${item.weather[0].icon}@4x.png`
 
@@ -136,6 +153,3 @@ btnEl.addEventListener('click', (e) => {
     getForecast()
 });
 
-// ✅ 5 günlük hava proqnozu
-
-// ✅ Başlanğıcda proqnozu göstər
